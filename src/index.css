@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+SC:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #b5000b;
+  --color-primary-container: #e30613;
+  --color-on-primary-container: #fff5f3;
+  --color-primary-fixed: #ffdad5;
+  --color-primary-fixed-dim: #ffb4aa;
+  --color-on-primary-fixed: #410001;
+  --color-on-primary-fixed-variant: #930007;
+
+  --color-secondary: #5f5e5e;
+  --color-secondary-container: #e2dfde;
+  --color-on-secondary-container: #636262;
+  --color-secondary-fixed: #e5e2e1;
+  --color-secondary-fixed-dim: #c8c6c5;
+  --color-on-secondary-fixed: #1c1b1b;
+  --color-on-secondary-fixed-variant: #474746;
+
+  --color-tertiary: #0059a8;
+  --color-tertiary-container: #0071d4;
+  --color-on-tertiary-container: #f5f7ff;
+  --color-tertiary-fixed: #d5e3ff;
+  --color-tertiary-fixed-dim: #a7c8ff;
+  --color-on-tertiary-fixed: #001b3c;
+  --color-on-tertiary-fixed-variant: #004788;
+
+  --color-background: #f9f9f9;
+  --color-on-background: #1a1c1c;
+
+  --color-surface: #f9f9f9;
+  --color-on-surface: #1a1c1c;
+  --color-surface-bright: #f9f9f9;
+  --color-surface-dim: #dadada;
+  --color-surface-variant: #e2e2e2;
+  --color-on-surface-variant: #5e3f3b;
+  --color-surface-muted: #F5F5F7;
+  --color-surface-container: #eeeeee;
+  --color-surface-container-high: #e8e8e8;
+  --color-surface-container-highest: #e2e2e2;
+  --color-surface-container-low: #f3f3f4;
+  --color-surface-container-lowest: #ffffff;
+  
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-yora-red: #E30613;
+  --color-charcoal: #1A1A1A;
+  --color-soft-grey: #666666;
+  --color-surface-faint: #F5F7FA;
+  
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display-lg: "Poppins", sans-serif;
+  --font-subhead-sm: "Poppins", sans-serif;
+  --font-headline-md: "Poppins", sans-serif;
+  --font-headline-lg-mobile: "Poppins", sans-serif;
+  --font-body-rg: "Poppins", sans-serif;
+  --font-label-cn-rg: "Noto Sans SC", sans-serif;
+  --font-label-cn-bold: "Noto Sans SC", sans-serif;
+
+  --font-size-display-lg: 40px;
+  --font-size-label-cn-rg: 13px;
+  --font-size-subhead-sm: 18px;
+  --font-size-headline-lg-mobile: 24px;
+  --font-size-body-rg: 14px;
+  --font-size-label-cn-bold: 13px;
+  --font-size-headline-md: 22px;
+
+  /* Custom Spacings */
+  --spacing-margin-desktop: 80px;
+  --spacing-stack-sm: 8px;
+  --spacing-margin-mobile: 20px;
+  --spacing-container-max: 1440px;
+  --spacing-stack-lg: 32px;
+  --spacing-gutter: 24px;
+  --spacing-stack-md: 16px;
+
+  --animate-bounce-slow: bounceSlow 3s ease-in-out infinite;
+}
+
+@keyframes bounceSlow {
+  0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+  50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+
+/* Material Symbols Outlined Configuration */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Global Custom Styles from Templates */
+.watermark-text {
+  font-size: 280px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.04);
+  user-select: none;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  html {
+    zoom: 1; /* Set to 1 as requested to try standard native scale */
+  }
+  .watermark-text {
+    font-size: 160px;
+  }
+}
+
+.bento-grid-bg {
+  background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.golden-glow {
+  filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.3));
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rui-glow {
+  filter: drop-shadow(0 0 40px rgba(227, 6, 19, 0.15));
+}
+
+.bento-card {
+  background: #ffffff;
+  border: 1px solid #E5E5E5;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+}
+
+.bento-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.chat-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hero-glow {
+  background: radial-gradient(circle at center, rgba(227, 6, 19, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+.feature-card {
+  box-shadow: 0 10px 30px rgba(26, 26, 26, 0.04);
+  backdrop-filter: blur(8px);
+}
+
+.floating-1 { animation: float 6s ease-in-out infinite; }
+.floating-2 { animation: float 8s ease-in-out infinite 1s; }
+.floating-3 { animation: float 7s ease-in-out infinite 0.5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+.glow-cursor {
+  position: absolute;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(227, 6, 19, 0.08) 0%, rgba(255, 255, 255, 0) 60%);
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+

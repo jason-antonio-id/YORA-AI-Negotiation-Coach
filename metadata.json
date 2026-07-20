@@ -1,0 +1,6 @@
+{
+  "name": "YORA | Strategic Negotiation Intelligence",
+  "description": "Expert AI strategist for Indonesian importers sourcing from China. Real-time deal analysis, Guanxi protection, and cross-cultural trade co-pilot.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
