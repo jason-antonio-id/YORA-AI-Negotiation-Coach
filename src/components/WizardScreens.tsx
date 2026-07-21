@@ -37,7 +37,7 @@ export function WizardStep1({ onNavigate, onAddSupplier, addedSupplier, setAdded
     // Save temporary state in the addedSupplier object to carry on to next step
     const tempSupplier: Partial<Supplier> = {
       ...addedSupplier,
-      id: addedSupplier?.id || Math.random().toString(36).substring(2, 15),
+      id: addedSupplier?.id || crypto.randomUUID(),
       createdAt: addedSupplier?.createdAt || new Date().toISOString(),
       chineseName,
       englishName,
@@ -836,7 +836,7 @@ export function WizardStep3({ onNavigate, onAddSupplier, addedSupplier, setAdded
     setIsFinishing(true);
     
     try {
-      const freshId = Math.random().toString(36).substring(2, 15);
+      const freshId = crypto.randomUUID();
       if (addedSupplier) {
         const finalSupplier: Supplier = {
           ...addedSupplier,
