@@ -2034,6 +2034,7 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
           aiDepth: userData.aiDepth,
           aiLang: userData.aiLang,
           mode: 'chat',
+          supplierId: supplier.id,
           context: `Supplier Information:
 - Chinese Name: ${sanit(supplier.chineseName, 100) || 'Not Specified'}
 - English Name: ${sanit(supplier.englishName, 100) || 'Not Specified'}
@@ -2070,6 +2071,11 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
       if (!response.ok) throw new Error(data.error || "Server Error");
 
       setIsTyping(false);
+      // The server has already persisted the AI's chat_messages row and updated
+      // the supplier's scores/analysis (see /api/chat in server.ts) before this
+      // response arrived, so it's safe even if this tab isn't around to see it.
+      // The Realtime subscription above will pick up the new message and refresh
+      // the list; here we just apply it locally too for an instant same-tab update.
       const aiResponseText = parseConversationalResponse(data.text);
       const parsedAnalysis = parseAnalysis(data.text);
       const hasAnalysisText = data.text.toLowerCase().includes('translation') || data.text.toLowerCase().includes('real meaning') || data.text.toLowerCase().includes('suggested reply');
@@ -2079,20 +2085,6 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
         setAnalysis(parsedAnalysis);
         if (newScores) setScores(newScores);
       }
-
-      const { error: aiMsgErr } = await supabase
-        .from('chat_messages')
-        .insert({
-          supplier_id: supplier.id,
-          sender: 'ai',
-          sender_name: 'Rui',
-          text: aiResponseText || data.text,
-          created_at: new Date().toISOString(),
-          translation: data.text
-        });
-      if (aiMsgErr) throw aiMsgErr;
-
-      saveConversation(newScores, hasAnalysisText ? parsedAnalysis : undefined);
     } catch (err: any) {
       setIsTyping(false);
       console.error(err);
@@ -2162,6 +2154,7 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
           aiDepth: userData.aiDepth,
           aiLang: userData.aiLang,
           mode: 'simulate',
+          supplierId: supplier.id,
           context: `Supplier Information:
 - Chinese Name: ${sanit(supplier.chineseName, 100) || 'Not Specified'}
 - English Name: ${sanit(supplier.englishName, 100) || 'Not Specified'}
@@ -2198,7 +2191,6 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
       if (!response.ok) throw new Error(data.error || "Server Error");
 
       setIsSimulating(false);
-      const aiResponseText = parseConversationalResponse(data.text);
       const parsedAnalysis = parseAnalysis(data.text);
       const hasAnalysisText = data.text.toLowerCase().includes('translation') || data.text.toLowerCase().includes('real meaning') || data.text.toLowerCase().includes('suggested reply');
       const newScores = hasAnalysisText ? parseScores(data.text) : null;
@@ -2207,22 +2199,12 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
         setAnalysis(parsedAnalysis);
         if (newScores) setScores(newScores);
       }
-
-      const { error: aiMsgErr } = await supabase
-        .from('chat_messages')
-        .insert({
-          supplier_id: supplier.id,
-          sender: 'ai',
-          sender_name: 'Rui',
-          text: aiResponseText || "Analysis complete.",
-          created_at: new Date().toISOString(),
-          translation: data.text
-        });
-      if (aiMsgErr) throw aiMsgErr;
-
-      saveConversation(newScores, hasAnalysisText ? parsedAnalysis : undefined);
+      // Server already persisted the AI message + supplier score/analysis update
+      // (see /api/chat in server.ts) before this response arrived. The Realtime
+      // subscription on chat_messages will reflect it even if this tab was
+      // navigated away and back in the meantime.
     } catch (err: any) {
-      setIsTyping(false);
+      setIsSimulating(false);
       console.error(err);
       alert("Error taking action: " + (err.message || "Failed to chat with AI strategist."));
     }
