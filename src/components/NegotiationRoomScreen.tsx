@@ -423,7 +423,7 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
 
     try {
       const gLogoUrl = "https://i.ibb.co.com/k2c1SPn8/1.png";
-      const gTopRightMascotUrl = "https://i.ibb.co.com/ZZ9rMnb/1.png";
+      const gTopRightMascotUrl = "https://i.ibb.co.com/LDhnNDzD/RUI-PROFILE-ICON.png";
       const gSummaryMascotUrl = resolveStorageUrl("https://i.ibb.co.com/Ndrz72Qf/RUI-EUREKA-MOMENT-BASICS.png");
 
       const logoUrl = `/api/proxy-image?url=${encodeURIComponent(gLogoUrl)}`;
@@ -2436,7 +2436,7 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
             )}
             <div className="bg-surface-muted/20 px-5 py-2.5 border-b border-border-light flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <img src="https://i.ibb.co.com/ZZ9rMnb/1.png" className="w-14 h-14 object-contain p-1.5 bg-white rounded-full border border-primary/20 shadow-md transition-transform hover:scale-105" />
+                <img src="https://i.ibb.co.com/LDhnNDzD/RUI-PROFILE-ICON.png" className="w-14 h-14 object-contain p-1.5 bg-white rounded-full border border-primary/20 shadow-md transition-transform hover:scale-105" />
                 <span className="font-semibold text-[11px] text-primary uppercase tracking-widest leading-none">Rui Smart Analysis</span>
               </div>
               <span className="text-[10px] font-normal bg-white border border-border-light px-3 py-0.5 rounded-full text-subtitle-grey">Confidence: 94%</span>
@@ -2544,7 +2544,7 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
                       msg.sender === 'ai' ? 'bg-white border-primary/20' : 'bg-surface-muted text-slate-700'
                     }`}>
                       {msg.sender === 'ai' ? (
-                        <img src="https://i.ibb.co.com/ZZ9rMnb/1.png" className="w-12 h-12 object-contain p-0.5" />
+                        <img src="https://i.ibb.co.com/LDhnNDzD/RUI-PROFILE-ICON.png" className="w-12 h-12 object-contain p-0.5" />
                       ) : msg.sender === 'supplier' && supplier.logoUrl ? (
                         <img src={supplier.logoUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
@@ -2576,7 +2576,7 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
               {(isTyping || isSimulating) && (
                 <div className="flex items-start gap-4 animate-fade-in">
                   <div className="w-14 h-14 rounded-full bg-white border border-primary/20 flex items-center justify-center animate-pulse flex-shrink-0">
-                    <img src="https://i.ibb.co.com/ZZ9rMnb/1.png" className="w-12 h-12 object-contain p-0.5" />
+                    <img src="https://i.ibb.co.com/LDhnNDzD/RUI-PROFILE-ICON.png" className="w-12 h-12 object-contain p-0.5" />
                   </div>
                   <div className="bg-primary/5 p-3.5 rounded-2xl rounded-tl-none border border-primary/10 flex flex-col gap-1 shadow-sm max-w-[80%]">
                     <p className="text-[10px] font-bold text-primary tracking-wide uppercase mb-1 animate-pulse">
