@@ -58,9 +58,112 @@ function sanitizeSupplierInput(str: any, maxLength = 100): string {
   return cleaned.substring(0, maxLength);
 }
 
+// --- Shared AI response parsing helpers (mirrors src/components/NegotiationRoomScreen.tsx) ---
+// Kept in sync manually with the client-side copies used for local rendering.
+function cleanMarkdown(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\*/g, "")
+    .replace(/#/g, "")
+    .replace(/^\s*-\s+/gm, "• ")
+    .replace(/\\n/g, "\n");
+}
+
+function parseConversationalResponse(text: string): string {
+  if (!text) return "";
+  const match = text.match(/\[CONVERSATIONAL_RESPONSE\]\s*([\s\S]*?)(?=\[ANALYSIS\]|A\.\s*(?:TRANSLATION|Translation)|$)/i);
+  if (match) return match[1].trim();
+
+  if (!text.includes('[ANALYSIS]') && !text.includes('A. TRANSLATION') && !text.includes('A. Translation')) {
+    return text.trim();
+  }
+
+  const markers = ['[ANALYSIS]', 'A. TRANSLATION', 'A. Translation', '### [ANALYSIS]', 'A.翻译'];
+  let cleanest = text;
+  for (const marker of markers) {
+    const lowerMarker = marker.toLowerCase();
+    const index = cleanest.toLowerCase().indexOf(lowerMarker);
+    if (index !== -1) {
+      cleanest = cleanest.substring(0, index);
+    }
+  }
+  return cleanest.replace(/\[CONVERSATIONAL_RESPONSE\]/gi, '').trim();
+}
+
+interface ParsedAnalysis {
+  translation: string;
+  realMeaning: string;
+  guanxiTone: string;
+  copyReadyReply: string;
+  nextMove: string;
+}
+
+function parseAnalysis(text: string): ParsedAnalysis {
+  const sections: ParsedAnalysis = {
+    translation: "N/A",
+    realMeaning: "Awaiting new message...",
+    guanxiTone: "Neutral",
+    copyReadyReply: "N/A",
+    nextMove: "Continue conversation.",
+  };
+  if (!text) return sections;
+
+  const markers = [
+    { key: 'translation', labels: ['A. TRANSLATION:', 'A. TRANSLATION', 'A. Translation:', 'A. Translation'] },
+    { key: 'realMeaning', labels: ['B. REAL MEANING:', 'B. REAL MEANING', 'B. Real Meaning:', 'B. Real Meaning'] },
+    { key: 'guanxiTone', labels: ['C. GUANXI & TONE:', 'C. GUANXI & TONE', 'C. Guanxi & Tone:', 'C. Guanxi & Tone'] },
+    { key: 'copyReadyReply', labels: ['D. SUGGESTED REPLY:', 'D. SUGGESTED REPLY', 'D. Suggested Reply:', 'D. Suggested Reply'] },
+    { key: 'nextMove', labels: ['E. NEXT MOVE:', 'E. NEXT MOVE', 'E. Next Move:', 'E. Next Move'] },
+    { key: 'end', labels: ['[METRICS]', 'RELATIONSHIP_SCORES:'] }
+  ];
+
+  const findIndex = (labelGroup: string[]) => {
+    for (const label of labelGroup) {
+      const idx = text.indexOf(label);
+      if (idx !== -1) return { index: idx, length: label.length };
+    }
+    return { index: -1, length: 0 };
+  };
+
+  const positions = markers.map(m => ({ ...m, ...findIndex(m.labels) }));
+
+  for (let i = 0; i < positions.length - 1; i++) {
+    const current = positions[i];
+    if (current.index === -1) continue;
+    const start = current.index + current.length;
+    let end = text.length;
+    for (let j = i + 1; j < positions.length; j++) {
+      if (positions[j].index !== -1) {
+        end = positions[j].index;
+        break;
+      }
+    }
+    const content = text.substring(start, end).trim();
+    if (content) {
+      (sections as any)[current.key] = cleanMarkdown(content);
+    }
+  }
+  return sections;
+}
+
+function parseScoresFromText(text: string): { trust: number; leverage: number; urgency: number } | null {
+  if (!text) return null;
+  const match = text.match(/RELATIONSHIP_SCORES:\s*({[\s\S]*?})/);
+  if (match) {
+    try {
+      return JSON.parse(match[1]);
+    } catch (e) {}
+  }
+  return null;
+}
+// --- End shared AI response parsing helpers ---
+
 // Extracted helper for Gemini API with retries to resolve duplication (Issue 4) with fully reachable loop structure (Issue 14)
 async function callGeminiWithRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
-  const maxAttempts = 3;
+  // Kept at 2 attempts (was 3) to reduce worst-case total request duration and
+  // lower the risk of hitting the hosting platform's serverless function timeout
+  // (e.g. Vercel Hobby defaults to a short timeout unless maxDuration is raised).
+  const maxAttempts = 2;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
@@ -551,7 +654,14 @@ IMPORTANT: Do not use excessive markdown (like bolding or headers) within the an
 
   app.post("/api/chat", requireAuth, async (req, res) => {
     try {
-      const { messages, context, aiTone, aiDepth, aiLang, mode } = req.body;
+      const { messages, context, aiTone, aiDepth, aiLang, mode, supplierId } = req.body;
+
+      // supplierId is required so the server can persist the AI reply and updated
+      // scores itself, independent of whether the client is still on this screen
+      // by the time Gemini responds (fixes "analysis disappears when I switch tabs").
+      if (!supplierId || typeof supplierId !== 'string') {
+        return res.status(400).json({ error: "Missing supplierId." });
+      }
       
       // Strict payload validation (Issue 2)
       if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -656,6 +766,74 @@ Because of this, there is no raw supplier message to parse right now.
       );
 
       const responseText = response.text || "";
+
+      // Persist the AI reply (and, if present, updated relationship scores/analysis)
+      // server-side, right here, BEFORE responding. This guarantees it's saved as long
+      // as this request completes, regardless of whether the user has since navigated
+      // away from the Negotiation Room tab. The existing Supabase Realtime subscription
+      // in NegotiationRoomScreen.tsx (on public.chat_messages) picks up this insert
+      // automatically whenever that screen is mounted, and a fresh mount re-fetches
+      // full history on load either way.
+      try {
+        // Ownership check: confirm this supplier actually belongs to the authenticated
+        // user before writing anything (service role client bypasses RLS, so this must
+        // be enforced manually here).
+        const { data: ownedSupplier, error: ownerCheckErr } = await supabase
+          .from('suppliers')
+          .select('id, guanxi_score')
+          .eq('id', supplierId)
+          .eq('owner_id', (req as any).user.id)
+          .single();
+
+        if (ownerCheckErr || !ownedSupplier) {
+          console.error("[API CHAT] Persist skipped: supplier not found or not owned by user.", ownerCheckErr?.message);
+        } else {
+          const aiConversationalText = parseConversationalResponse(responseText);
+          const hasAnalysisText = responseText.toLowerCase().includes('translation') ||
+            responseText.toLowerCase().includes('real meaning') ||
+            responseText.toLowerCase().includes('suggested reply');
+          const parsedAnalysis = hasAnalysisText ? parseAnalysis(responseText) : null;
+          const parsedScores = hasAnalysisText ? parseScoresFromText(responseText) : null;
+
+          const { error: insertErr } = await supabase
+            .from('chat_messages')
+            .insert({
+              supplier_id: supplierId,
+              sender: 'ai',
+              sender_name: 'Rui',
+              text: aiConversationalText || responseText,
+              created_at: new Date().toISOString(),
+              translation: responseText
+            });
+          if (insertErr) {
+            console.error("[API CHAT] Failed to persist AI message:", insertErr.message);
+          }
+
+          if (parsedScores) {
+            const calculatedGuanxi = Math.round(
+              (parsedScores.trust + parsedScores.leverage + (100 - parsedScores.urgency)) / 3
+            );
+            const { error: updateErr } = await supabase
+              .from('suppliers')
+              .update({
+                scores: parsedScores,
+                latest_analysis: parsedAnalysis,
+                guanxi_score: calculatedGuanxi,
+                guanxi_trend: calculatedGuanxi - (ownedSupplier.guanxi_score || 50),
+                last_contact_text: aiConversationalText || responseText
+              })
+              .eq('id', supplierId);
+            if (updateErr) {
+              console.error("[API CHAT] Failed to update supplier scores:", updateErr.message);
+            }
+          }
+        }
+      } catch (persistErr: any) {
+        // Never fail the whole request just because persistence had an issue -
+        // still return the AI text so the client can show/save it as a fallback.
+        console.error("[API CHAT] Unexpected persistence error:", persistErr?.message);
+      }
+
       res.json({ text: responseText });
     }
     catch (error: any) {
