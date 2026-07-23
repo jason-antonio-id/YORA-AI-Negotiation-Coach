@@ -186,7 +186,7 @@ async function callGeminiWithRetry<T>(fn: () => Promise<T>, label: string): Prom
   throw new Error(`[${label}] Failed after ${maxAttempts} attempts`);
 }
 
-async function startServer() {
+export async function buildApp() {
   const app = express();
   // Support dynamic process port config for deployment runtime containers (Issue 5)
   const PORT = parseInt(process.env.PORT || "3000", 10);
@@ -993,9 +993,21 @@ Do NOT include headings or labels. Write it as a single, beautifully cohesive an
     });
   }
 
+  return { app, PORT };
+}
+
+// Traditional persistent-server entry point (local dev, Render, Koyeb, etc).
+// NOT used on Vercel - Vercel invokes the app directly per-request via
+// api/index.ts, since serverless functions can't call app.listen().
+async function startServer() {
+  const { app, PORT } = await buildApp();
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-startServer();
+// process.env.VERCEL is set automatically by Vercel's build/runtime environment.
+// Only self-start a listening server when we're NOT on Vercel.
+if (!process.env.VERCEL) {
+  startServer();
+}
