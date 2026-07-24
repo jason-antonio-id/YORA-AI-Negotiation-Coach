@@ -420,15 +420,23 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
     let logoData = { dataUrl: '', aspect: 1.0 };
     let topRightMascotData = { dataUrl: '', aspect: 1.0 };
     let summaryMascotData = { dataUrl: '', aspect: 1.0 };
+    let transcriptSupplierIconData = { dataUrl: '', aspect: 1.0 };
+    let summarySupplierIconData = { dataUrl: '', aspect: 1.0 };
 
     try {
       const gLogoUrl = "https://i.ibb.co.com/k2c1SPn8/1.png";
       const gTopRightMascotUrl = "https://i.ibb.co.com/LDhnNDzD/RUI-PROFILE-ICON.png";
       const gSummaryMascotUrl = resolveStorageUrl("https://i.ibb.co.com/Ndrz72Qf/RUI-EUREKA-MOMENT-BASICS.png");
+      // Transcript supplier avatar: red icon, no background (transparent PNG)
+      const gTranscriptSupplierIconUrl = "https://i.ibb.co.com/gMnT2Tqr/RUI-Transparent-emote.png";
+      // Negotiation Summary (section 01) supplier avatar: red circle background, white icon
+      const gSummarySupplierIconUrl = "https://i.ibb.co.com/7x3fMwZY/RUI-Transparent-emote-1.png";
 
       const logoUrl = `/api/proxy-image?url=${encodeURIComponent(gLogoUrl)}`;
       const topRightMascotUrl = `/api/proxy-image?url=${encodeURIComponent(gTopRightMascotUrl)}`;
       const summaryMascotUrl = `/api/proxy-image?url=${encodeURIComponent(gSummaryMascotUrl)}`;
+      const transcriptSupplierIconUrl = `/api/proxy-image?url=${encodeURIComponent(gTranscriptSupplierIconUrl)}`;
+      const summarySupplierIconUrl = `/api/proxy-image?url=${encodeURIComponent(gSummarySupplierIconUrl)}`;
 
       const getBase64ImageFromUrl = (url: string, useJpeg = true): Promise<{ dataUrl: string; aspect: number }> => {
         return new Promise((resolve) => {
@@ -481,14 +489,18 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
         });
       };
 
-      const [lData, trData, sData] = await Promise.all([
+      const [lData, trData, sData, tsData, ssData] = await Promise.all([
         getBase64ImageFromUrl(logoUrl, false), // keep PNG for logo for transparent consistency
         getBase64ImageFromUrl(topRightMascotUrl, false), // keep PNG for mascot for pristine transparency
-        getBase64ImageFromUrl(summaryMascotUrl, true)  // JPEG is perfect for footer mascots
+        getBase64ImageFromUrl(summaryMascotUrl, true),  // JPEG is perfect for footer mascots
+        getBase64ImageFromUrl(transcriptSupplierIconUrl, false), // PNG - needs to stay transparent (no bg)
+        getBase64ImageFromUrl(summarySupplierIconUrl, false) // PNG - has its own red circle bg baked in
       ]);
       logoData = lData;
       topRightMascotData = trData;
       summaryMascotData = sData;
+      transcriptSupplierIconData = tsData;
+      summarySupplierIconData = ssData;
     } catch (err) {
       console.error("Error preloading images:", err);
     }
@@ -642,9 +654,9 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
 
       // Helper to draw headers on any page
       const drawPageHeader = (pageNumber: number) => {
-        const logoWidth = 11.5;
-        const logoHeight = 11.5;
-        const logoY = 8.75;
+        const logoWidth = 15.5;
+        const logoHeight = 15.5;
+        const logoY = 6.75;
 
         // Draw actual YORA logo image if available, else fallback to vector
         if (logoData.dataUrl) {
@@ -930,8 +942,13 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
       doc.setTextColor(scoreColor[0], scoreColor[1], scoreColor[2]);
       doc.text(statusLabel, xPill + wPill / 2, yPill + 2.7, { align: "center" });
 
-      // Draw beautiful red circular business icon on the left
-      drawBusinessIcon(24.5, yPos + 10.5, 4.5, true);
+      // Draw supplier icon on the left (red circle bg + white icon, baked into the source image)
+      if (summarySupplierIconData.dataUrl) {
+        const d = 4.5 * 2;
+        doc.addImage(summarySupplierIconData.dataUrl, 'PNG', 24.5 - 4.5, (yPos + 10.5) - 4.5, d, d);
+      } else {
+        drawBusinessIcon(24.5, yPos + 10.5, 4.5, true);
+      }
 
       // Left column details (properly shifted to x = 32.0 to clear the icon, perfectly aligned on grid)
       doc.setFont("Helvetica", "bold");
@@ -1039,11 +1056,21 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
         
         // 2. Draw actual avatar circle and icon on top of the line
         if (type === 'ai') {
-          // Draw a beautifully proportioned person icon for the buyer
-          drawPersonIcon(cx, cy, 2.8, false);
+          // Rui's actual profile icon image (falls back to the old vector person icon if it failed to load)
+          if (topRightMascotData.dataUrl) {
+            const d = 2.8 * 2;
+            doc.addImage(topRightMascotData.dataUrl, 'PNG', cx - 2.8, cy - 2.8, d, d);
+          } else {
+            drawPersonIcon(cx, cy, 2.8, false);
+          }
         } else if (type === 'supplier') {
-          // Draw a beautiful supplier business icon
-          drawBusinessIcon(cx, cy, 2.8, false);
+          // Supplier's red icon, no background circle (transparent PNG), same size as Rui's avatar
+          if (transcriptSupplierIconData.dataUrl) {
+            const d = 2.8 * 2;
+            doc.addImage(transcriptSupplierIconData.dataUrl, 'PNG', cx - 2.8, cy - 2.8, d, d);
+          } else {
+            drawBusinessIcon(cx, cy, 2.8, false);
+          }
         } else if (type === 'star') {
           // Draw a beautiful custom RUI icon with a white circle background, red border, and the YORA/RUI logo inside
           doc.setFillColor(255, 255, 255);
