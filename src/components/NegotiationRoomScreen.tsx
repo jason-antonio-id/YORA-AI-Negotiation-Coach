@@ -943,9 +943,14 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
       doc.text(statusLabel, xPill + wPill / 2, yPill + 2.7, { align: "center" });
 
       // Draw supplier icon on the left (red circle bg + white icon, baked into the source image)
-      if (summarySupplierIconData.dataUrl) {
-        const d = 4.5 * 2;
-        doc.addImage(summarySupplierIconData.dataUrl, 'PNG', 24.5 - 4.5, (yPos + 10.5) - 4.5, d, d);
+      const isSummaryIconValid = summarySupplierIconData.dataUrl && summarySupplierIconData.dataUrl.startsWith('data:image');
+      if (isSummaryIconValid) {
+        try {
+          const d = 4.5 * 2;
+          doc.addImage(summarySupplierIconData.dataUrl, 'PNG', 24.5 - 4.5, (yPos + 10.5) - 4.5, d, d);
+        } catch (e) {
+          drawBusinessIcon(24.5, yPos + 10.5, 4.5, true);
+        }
       } else {
         drawBusinessIcon(24.5, yPos + 10.5, 4.5, true);
       }
@@ -1056,18 +1061,34 @@ export function NegotiationRoomScreen({ onNavigate, supplier, onUpdateSupplier, 
         
         // 2. Draw actual avatar circle and icon on top of the line
         if (type === 'ai') {
+          // White backing circle masks the connecting line behind the icon (same as the old vector icons did)
+          doc.setFillColor(255, 255, 255);
+          doc.circle(cx, cy, 2.8, 'F');
           // Rui's actual profile icon image (falls back to the old vector person icon if it failed to load)
-          if (topRightMascotData.dataUrl) {
-            const d = 2.8 * 2;
-            doc.addImage(topRightMascotData.dataUrl, 'PNG', cx - 2.8, cy - 2.8, d, d);
+          const isValidImg = topRightMascotData.dataUrl && topRightMascotData.dataUrl.startsWith('data:image');
+          if (isValidImg) {
+            try {
+              const d = 2.8 * 2;
+              doc.addImage(topRightMascotData.dataUrl, 'PNG', cx - 2.8, cy - 2.8, d, d);
+            } catch (e) {
+              drawPersonIcon(cx, cy, 2.8, false);
+            }
           } else {
             drawPersonIcon(cx, cy, 2.8, false);
           }
         } else if (type === 'supplier') {
+          // White backing circle masks the connecting line behind the icon (same as the old vector icons did)
+          doc.setFillColor(255, 255, 255);
+          doc.circle(cx, cy, 2.8, 'F');
           // Supplier's red icon, no background circle (transparent PNG), same size as Rui's avatar
-          if (transcriptSupplierIconData.dataUrl) {
-            const d = 2.8 * 2;
-            doc.addImage(transcriptSupplierIconData.dataUrl, 'PNG', cx - 2.8, cy - 2.8, d, d);
+          const isValidImg = transcriptSupplierIconData.dataUrl && transcriptSupplierIconData.dataUrl.startsWith('data:image');
+          if (isValidImg) {
+            try {
+              const d = 2.8 * 2;
+              doc.addImage(transcriptSupplierIconData.dataUrl, 'PNG', cx - 2.8, cy - 2.8, d, d);
+            } catch (e) {
+              drawBusinessIcon(cx, cy, 2.8, false);
+            }
           } else {
             drawBusinessIcon(cx, cy, 2.8, false);
           }
