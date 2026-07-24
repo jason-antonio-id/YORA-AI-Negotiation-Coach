@@ -1,6 +1,11 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+// NOTE: "vite" is intentionally NOT imported here at the top level.
+// It's a dev-only tool (used below only when NODE_ENV !== "production"),
+// and statically importing it here would drag it (and its rollup native
+// binary dependency) into the production/Vercel serverless bundle, which
+// crashes at runtime with a missing @rollup/rollup-linux-x64-gnu error.
+// It's dynamically imported instead, only on the dev code path below.
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 dotenv.config();
@@ -980,6 +985,7 @@ Do NOT include headings or labels. Write it as a single, beautifully cohesive an
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
