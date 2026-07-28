@@ -761,7 +761,7 @@ Because of this, there is no raw supplier message to parse right now.
       // Call the helper function with valid model "gemini-2.0-flash" (Issue 1, Issue 4, and official model guidelines)
       const response = await callGeminiWithRetry(
         () => ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.5-flash",
           contents: contents,
           config: {
             systemInstruction: systemInstruction,
@@ -926,7 +926,7 @@ Do NOT include headings or labels. Write it as a single, beautifully cohesive an
       // Helper function call guarantees response returns a non-undefined result (Issue 8) and uses safe "gemini-2.0-flash" (Issue 1)
       const response = await callGeminiWithRetry(
         () => ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.5-flash",
           contents: prompt,
         }),
         "API MEMO"
