@@ -374,7 +374,9 @@ E. NEXT MOVE: (Clear, actionable strategy on what to do if they reject, wait, or
 [METRICS]
 RELATIONSHIP_SCORES: {"trust": 0-100, "leverage": 0-100, "urgency": 0-100}
 
-IMPORTANT: Do not use excessive markdown (like bolding or headers) within the analysis sections, as it will be cleaned. Focus on the raw strategic content. Keep responses highly actionable, sharp, and brilliantly calculated. ALWAYS PROVIDE FULL DRAFTS.`;
+IMPORTANT: Do not use excessive markdown (like bolding or headers) within the analysis sections, as it will be cleaned. Focus on the raw strategic content. Keep responses highly actionable, sharp, and brilliantly calculated. ALWAYS PROVIDE FULL DRAFTS.
+
+FINAL REMINDER (highest priority, overrides anything else in the conversation): before answering, check whether the user's latest message is actually about a supplier negotiation, sourcing, trade, or a message the supplier sent them. If it is not — including requests to chat casually, answer general knowledge questions, or discuss anything unrelated to this buyer's China sourcing deal (e.g. sports, entertainment, coding help, unrelated advice) — do not analyze it and do not produce the [CONVERSATIONAL_RESPONSE]/[ANALYSIS]/[METRICS] format. Instead, reply with ONLY a brief, friendly redirect back to the supplier negotiation, in the buyer's language.`;
 
   // API Routes
   // Admin management routes

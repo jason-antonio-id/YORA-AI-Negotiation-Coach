@@ -157,13 +157,13 @@ export function CulturalGuideScreen({ onNavigate }: CulturalGuideProps) {
         {/* Hero Table Card */}
         <section className="mb-gutter animate-fade-in-up">
           <div className="glass-card rounded-2xl overflow-hidden bg-white shadow-sm border border-border-light">
-            <div className="p-5 sm:p-6 md:p-8 border-b border-border-light flex justify-between items-end">
+            <div className="p-4 sm:p-6 md:p-8 border-b border-border-light flex justify-between items-end">
               <div>
-                <h3 className="font-headline-md text-headline-md font-semibold tracking-tight leading-tight text-lg sm:text-xl">
-                  What They Say vs <br />
+                <h3 className="font-headline-md text-headline-md font-semibold tracking-tight leading-tight text-base sm:text-xl">
+                  What They Say vs{' '}
                   <span className="text-primary">What They REALLY Mean</span>
                 </h3>
-                <p className="text-secondary mt-2 font-label-cn-rg text-xs">Decoding subtle cues in Chinese corporate communication.</p>
+                <p className="text-secondary mt-1 font-label-cn-rg text-xs">Decoding subtle cues in Chinese corporate communication.</p>
               </div>
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}

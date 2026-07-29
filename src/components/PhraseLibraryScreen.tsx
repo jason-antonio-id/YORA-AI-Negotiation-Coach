@@ -214,7 +214,7 @@ export function PhraseLibraryScreen({ onNavigate }: PhraseLibraryProps) {
                         <span className="material-symbols-outlined text-[16px]">
                           {feedback === 'zh' ? 'check_circle' : 'content_copy'}
                         </span>
-                        {feedback === 'zh' ? 'Copied ZH' : 'Copy ZH'}
+                        {feedback === 'zh' ? 'Copied CN' : 'Copy CN'}
                       </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.02 }}

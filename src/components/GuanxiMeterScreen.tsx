@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ScreenType, Supplier } from '../types';
 import { resolveStorageUrl } from '../lib/supabase';
 
@@ -56,6 +56,7 @@ interface GuanxiProps {
 export function GuanxiMeterScreen({ onNavigate, suppliers }: GuanxiProps) {
   const [activeTab, setActiveTab] = useState<'All' | 'High' | 'Risk'>('All');
   const [animateIn, setAnimateIn] = useState(false);
+  const [isPortfolioExpanded, setIsPortfolioExpanded] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setAnimateIn(true), 150);
@@ -313,10 +314,24 @@ export function GuanxiMeterScreen({ onNavigate, suppliers }: GuanxiProps) {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="bg-surface-container-lowest border border-border-light rounded-[24px] overflow-hidden shadow-sm"
         >
-          <div className="px-8 py-6 border-b border-border-light flex justify-between items-center flex-wrap gap-4">
+          <div
+            onClick={() => setIsPortfolioExpanded(prev => !prev)}
+            className="px-8 py-6 border-b border-border-light flex justify-between items-center flex-wrap gap-4 cursor-pointer select-none"
+          >
             <h3 className="font-headline-md text-[18px] font-medium">Supplier Portfolio Status / 供应商投资组合状态</h3>
+            <span className={`material-symbols-outlined text-secondary transition-transform duration-300 ${isPortfolioExpanded ? 'rotate-180' : ''}`}>expand_more</span>
           </div>
 
+          <AnimatePresence initial={false}>
+            {isPortfolioExpanded && (
+              <motion.div
+                key="portfolio-table"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-surface-muted text-subtitle-grey font-label-cn-bold text-xs uppercase">
@@ -406,6 +421,9 @@ export function GuanxiMeterScreen({ onNavigate, suppliers }: GuanxiProps) {
               </tbody>
             </table>
           </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.section>
       </div>
     </div>
