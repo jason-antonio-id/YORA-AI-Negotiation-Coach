@@ -71,7 +71,7 @@ export function OtpVerificationScreen({ email, onVerified, onBack }: OtpVerifica
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: code,
-        type: 'email',
+        type: 'signup',
       });
       
       if (verifyError || !data.session) {
@@ -93,7 +93,8 @@ export function OtpVerificationScreen({ email, onVerified, onBack }: OtpVerifica
     setIsResending(true);
     setError(null);
     try {
-      const { error: resendError } = await supabase.auth.signInWithOtp({
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
         email,
       });
       if (resendError) {
