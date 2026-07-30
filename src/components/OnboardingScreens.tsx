@@ -102,40 +102,20 @@ export function RegisterStep1({ onNavigate, userData, setUserData }: OnboardingP
       
       const user = userCredential.user;
       if (!user) throw new Error("Authentication failed");
-      
-      // Immediately write/update profile skeleton
-      try {
-        const { error: profileErr } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            full_name: userData.fullName || '',
-            email: userData.email,
-            onboarding_status: 'incomplete',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        if (profileErr) throw profileErr;
-      } catch (dbErr: any) {
-        console.warn("Skeleton profile write failed:", dbErr);
-        // Non-fatal — user can still proceed with onboarding
-      }
 
-      // Send OTP to user's email immediately on successful registration
-      try {
-        await fetch('/api/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userData.email }),
-        });
-      } catch (otpErr) {
-        console.warn("Could not send initial OTP:", otpErr);
-      }
+      // Note: the profile row is created automatically by the `handle_new_user`
+      // database trigger (see supabase_schema.sql) as soon as the auth.users row
+      // is inserted — no manual insert needed here (and doing it manually here
+      // would fail RLS anyway, since the session isn't fully authenticated yet
+      // until the email/OTP is confirmed).
+
+      // Note: supabase.auth.signUp() above already sends the confirmation email
+      // with the OTP code automatically — no separate call needed here.
 
       {/* Success: Clear state and show OTP screen */}
       setPassword('');
       setConfirmPassword('');
-      setRegisteredUid(user.uid);
+      setRegisteredUid(user.id);
       setShowOtp(true);
     } catch (err: any) {
       console.error("Registration/Sign-in flow error:", err);
