@@ -61,12 +61,9 @@ export function LoginScreen({ onNavigate }: AuthProps) {
       if (error) throw error;
 
       if (data.user && !data.user.email_confirmed_at) {
-        // Fire-and-forget OTP dispatch
-        fetch('/api/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: data.user.email }),
-        }).catch(err => console.error("Failed to send OTP during login:", err));
+        // Fire-and-forget resend of the signup confirmation OTP
+        supabase.auth.resend({ type: 'signup', email: data.user.email! })
+          .catch(err => console.error("Failed to resend OTP during login:", err));
       }
     } catch (err: any) {
       console.error("Full login error:", err);
