@@ -86,8 +86,9 @@ export function SettingsScreen({
       if (error) throw error;
       await refreshProfile();
       setShowAIConfirm(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update AI strategy preferences:", error);
+      alert("Gagal menyimpan preferensi. Silakan coba lagi. / Failed to save preferences. Please try again.");
     } finally {
       setIsSaving(false);
     }
