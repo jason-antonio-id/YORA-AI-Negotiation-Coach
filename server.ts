@@ -661,7 +661,7 @@ FINAL REMINDER (highest priority, overrides anything else in the conversation): 
 
   app.post("/api/chat", requireAuth, async (req, res) => {
     try {
-      const { messages, context, aiTone, aiDepth, aiLang, mode, supplierId } = req.body;
+      const { messages, context, aiTone, aiDepth, aiLang, aiStyle, mode, supplierId } = req.body;
 
       // supplierId is required so the server can persist the AI reply and updated
       // scores itself, independent of whether the client is still on this screen
@@ -689,6 +689,7 @@ FINAL REMINDER (highest priority, overrides anything else in the conversation): 
       const cleanAiTone = typeof aiTone === 'string' ? aiTone.substring(0, 50).replace(/[^\w\s-]/g, '') : 'formal';
       const cleanAiDepth = typeof aiDepth === 'string' ? aiDepth.substring(0, 50).replace(/[^\w\s-]/g, '') : 'cultural';
       const cleanAiLang = typeof aiLang === 'string' ? aiLang.substring(0, 50).replace(/[^\w\s-]/g, ' ') : 'Bahasa Indonesia';
+      const cleanAiStyle = typeof aiStyle === 'string' ? aiStyle.substring(0, 50).replace(/[^\w\s-]/g, '') : 'balanced';
 
       if (process.env.NODE_ENV !== "production") {
         console.log("[API CHAT] Incoming request messages count:", messages.length, "mode:", cleanMode, "lang:", cleanAiLang);
@@ -723,10 +724,18 @@ FINAL REMINDER (highest priority, overrides anything else in the conversation): 
         return res.status(400).json({ error: "No valid message contents found." });
       }
 
+      const styleInstructionMap: Record<string, string> = {
+        aggressive: 'Push hard for the buyer\'s target price and terms. Be direct, assertive, and create urgency. Do not over-concede.',
+        balanced: 'Balance firmness on price with maintaining a respectful, cooperative relationship (guanxi). Concede gradually and reasonably.',
+        collaborative: 'Prioritize long-term relationship-building over short-term price wins. Emphasize mutual benefit, trust, and partnership language.',
+      };
+      const styleInstruction = styleInstructionMap[cleanAiStyle] || styleInstructionMap['balanced'];
+
       const preferenceHint = `ADAPT YOUR STRATEGY:
+- Negotiation Style: ${cleanAiStyle}. ${styleInstruction}
 - Tone of Voice: Use a ${cleanAiTone} style.
 - Cultural Depth: Provide ${cleanAiDepth} insights.
-- Response Language: Respond to the buyer in ${cleanAiLang}.
+- Response Language: The buyer's selected interface language is ${cleanAiLang}. You MUST write [CONVERSATIONAL_RESPONSE], B. REAL MEANING, C. GUANXI & TONE, and E. NEXT MOVE entirely in ${cleanAiLang} — do not default to any other language regardless of what language the supplier's message was in.
   D. SUGGESTED REPLY must always be Simplified Chinese first, then translated into ${cleanAiLang}.`;
 
       let modeInstruction = "";
